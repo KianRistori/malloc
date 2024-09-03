@@ -40,7 +40,7 @@ clean:
 	@rm -rf $(OBJ)
 	@make -s -C libft clean
 	@echo "- Removing symlink"
-	@rm $(SYMLINK)
+	@rm -f $(SYMLINK)
 
 fclean: clean
 	@echo "- Removing $(NAME)..."
