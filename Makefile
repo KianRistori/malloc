@@ -8,10 +8,10 @@ NAME = libft_malloc_$(HOSTTYPE).so
 SRC = main.c 
 OBJ = $(SRC:.c=.o)
 
-SYMLINK = libft_malloc.so 
+SYMLINK = libft_malloc.so
 
 LIBFT = @libft/Makefile
-FLAGS = -Wall -Wextra -Werror
+FLAGS = -Wall -Wextra -Werror -fPIC -shared 
 LIB = libft/libft.a
 
 all: $(LIBFT) $(NAME)
