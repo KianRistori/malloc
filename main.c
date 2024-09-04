@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <string.h>
 #include "malloc.h"
 
 heapInfo_t heap = {NULL, NULL, NULL};
 
-void *allocate_zone(size_t size)
+void	*allocate_zone(size_t size)
 {
 	void *start = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (start == MAP_FAILED) 
@@ -17,7 +16,7 @@ void *allocate_zone(size_t size)
 	return start;
 }
 
-int initHeap(heapInfo_t *heap)
+int	initHeap(heapInfo_t *heap)
 {
 	size_t tiny_zone_size = getpagesize();  // Una zona per allocazioni TINY
 	size_t small_zone_size = getpagesize() * 4;  // Una zona per allocazioni SMALL
@@ -42,8 +41,15 @@ int initHeap(heapInfo_t *heap)
 	return 0;
 }
 
-void	*malloc(size_t size) {
+void	*malloc(size_t size) 
+{
+	if (heap.tiny == NULL && initHeap(&heap) != 0)
+		return NULL; 
+
 	heapChunk_t *chunk = NULL;
+	
+	if (size <= 0)
+		return NULL;
 
 	if (size <= TINY_MAX)
 		chunk = heap.tiny;
@@ -83,20 +89,20 @@ void	*malloc(size_t size) {
 	}
 
 	chunk->inuse = 1;
-	return (void *)(chunk + 1);
+	return (void *)(chunk->next);
 }
 
 void free(void *ptr)
 {
-	if (!ptr) return;
+	if (!ptr)
+		return;
 
 	heapChunk_t *chunk = (heapChunk_t *)ptr - 1;
 	chunk->inuse = 0;
 
 	// If it's a LARGE allocation, free it with munmap
-	if (chunk->size > SMALL_MAX) {
+	if (chunk->size > SMALL_MAX)
 		munmap(chunk, chunk->size + sizeof(heapChunk_t));
-	}
 	// TINY and SMALL blocks will be reused, so just mark them as free
 }
 
