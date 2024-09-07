@@ -32,10 +32,10 @@ int	initHeap()
 	heap.small = allocate_zone(small_zone_size);
 	if (!heap.small)
 		return 1;
+
 	heap.small->size = small_zone_size - sizeof(heapChunk_t);
 	heap.small->inuse = 0;
 	heap.small->next = NULL;
-
 	heap.large = NULL;  // Gestione delle allocazioni LARGE sarà fatta al momento
 
 	return 0;
@@ -47,9 +47,6 @@ void	*malloc(size_t size)
 		return NULL; 
 
 	heapChunk_t *chunk = NULL;
-	
-	if (size <= 0)
-		return NULL;
 
 	if (size <= TINY_MAX)
 		chunk = heap.tiny;
@@ -103,7 +100,33 @@ void free(void *ptr)
 	// If it's a LARGE allocation, free it with munmap
 	if (chunk->size > SMALL_MAX)
 		munmap(chunk, chunk->size + sizeof(heapChunk_t));
-	// TINY and SMALL blocks will be reused, so just mark them as free
+
+	// Merge adjacent free chunks
+	heapChunk_t *prev = NULL;
+	heapChunk_t *current = (chunk->size <= TINY_MAX) ? heap.tiny : heap.small;
+
+	while (current)
+	{
+		if (current == chunk) 
+		{
+			// Merge with the next chunk if it's free
+			if (current->next && !current->next->inuse) 
+			{
+				current->size += sizeof(heapChunk_t) + current->next->size;
+				current->next = current->next->next;
+			}
+			// Merge with the previous chunk if it's free
+			if (prev && !prev->inuse) 
+			{
+				prev->size += sizeof(heapChunk_t) + current->size;
+				prev->next = current->next;
+				current = prev;  // Continue merging
+			}
+			break;
+		}
+		prev = current;
+		current = current->next;
+	}
 }
 
 void	*realloc(void *ptr, size_t size)
