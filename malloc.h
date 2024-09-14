@@ -3,8 +3,8 @@
 
 # include "libft/libft.h"
 
-#define TINY_MAX 64
-#define SMALL_MAX 512
+#define TINY_MAX 32
+#define SMALL_MAX 128
 
 typedef struct heapChunk {
 	size_t size;

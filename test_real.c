@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "malloc.h"
+#include <stdlib.h>
 #include <string.h>
 
 // Definizione semplificata di ft_memcpy per copiare dati
@@ -13,7 +13,6 @@ void *ft_memcpy(void *dest, const void *src, size_t n) {
 }
 
 int main() {
-	printf("get page = %d\n", getpagesize());
     // Scenario 1: Riallocare un blocco con memoria maggiore
     char *p1 = malloc(32); // Allocazione iniziale di 32 byte
     if (!p1) { printf("malloc failed\n"); return 1; }
