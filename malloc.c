@@ -87,7 +87,7 @@ void	*malloc(size_t size)
 	return (void *)(chunk + 1);
 }
 
-void free(void *ptr)
+void	free(void *ptr)
 {
 	if (!ptr)
 		return;
@@ -141,17 +141,19 @@ void	*realloc(void *ptr, size_t size)
         return NULL;
     }
 
-    if (size <= chunk->size) {
-		if (chunk->size > size + sizeof(heapChunk_t)) {
-            heapChunk_t *new_chunk = (heapChunk_t *)((char *)chunk + sizeof(heapChunk_t) + size);
-            new_chunk->size = chunk->size - size - sizeof(heapChunk_t);
-            new_chunk->inuse = 0;
-            new_chunk->next = chunk->next;
-            chunk->size = size;
-            chunk->next = new_chunk;
-        }
-        return ptr;
-    }
+	if (size <= chunk->size)
+	{
+		if (chunk->size > size + sizeof(heapChunk_t))
+		{
+            		heapChunk_t *new_chunk = (heapChunk_t *)((char *)chunk + sizeof(heapChunk_t) + size);
+			new_chunk->size = chunk->size - size - sizeof(heapChunk_t);
+			new_chunk->inuse = 0;
+			new_chunk->next = chunk->next;
+			chunk->size = size;
+			chunk->next = new_chunk;
+		}
+		return ptr;
+	}
 
 	heapChunk_t *next = chunk->next;
 

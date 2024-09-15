@@ -3,7 +3,7 @@ ifeq ($(HOSTTYPE),)
 endif
 
 NAME = libft_malloc_$(HOSTTYPE).so
-SRC = malloc.c 
+SRC = malloc.c show_alloc_mem.c
 OBJ = $(SRC:.c=.o)
 
 SYMLINK = libft_malloc.so
