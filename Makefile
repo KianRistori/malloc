@@ -1,5 +1,3 @@
-HOSTTYPE = $(echo $HOSTTYPE)
-
 ifeq ($(HOSTTYPE),)
 	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
 endif

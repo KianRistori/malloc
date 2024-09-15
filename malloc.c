@@ -63,6 +63,7 @@ void	*malloc(size_t size)
 		chunk->inuse = 1;
 		chunk->next = heap.large;
 		heap.large = chunk;
+		chunk->original_ptr = (void *)(chunk + 1);
 		return (void *)(chunk + 1);
 	}
 
@@ -81,8 +82,8 @@ void	*malloc(size_t size)
 		chunk->size = size;
 		chunk->next = new_chunk;
 	}
-
 	chunk->inuse = 1;
+	chunk->original_ptr = (void *)(chunk + 1);
 	return (void *)(chunk + 1);
 }
 
@@ -90,12 +91,14 @@ void free(void *ptr)
 {
 	if (!ptr)
 		return;
-
 	heapChunk_t *chunk = (heapChunk_t *)ptr - 1;
 	chunk->inuse = 0;
 
 	if (chunk->size > SMALL_MAX)
+	{
 		munmap(chunk, chunk->size + sizeof(heapChunk_t));
+		return;
+	}
 
 	heapChunk_t *prev = NULL;
 	heapChunk_t *current = (chunk->size <= TINY_MAX) ? heap.tiny : heap.small;
@@ -134,8 +137,19 @@ void	*realloc(void *ptr, size_t size)
     }
 
 	heapChunk_t *chunk = (heapChunk_t *)ptr - 1;
+	 if (ptr != chunk->original_ptr) {
+        return NULL;
+    }
 
     if (size <= chunk->size) {
+		if (chunk->size > size + sizeof(heapChunk_t)) {
+            heapChunk_t *new_chunk = (heapChunk_t *)((char *)chunk + sizeof(heapChunk_t) + size);
+            new_chunk->size = chunk->size - size - sizeof(heapChunk_t);
+            new_chunk->inuse = 0;
+            new_chunk->next = chunk->next;
+            chunk->size = size;
+            chunk->next = new_chunk;
+        }
         return ptr;
     }
 
