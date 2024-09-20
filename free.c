@@ -1,11 +1,12 @@
 #include "malloc.h"
 
-extern heapInfo_t heap;
+extern heapInfo_t	heap;
 
 void	free(void *ptr)
 {
 	if (!ptr)
 		return;
+
 	heapChunk_t *chunk = (heapChunk_t *)ptr - 1;
 	chunk->inuse = 0;
 

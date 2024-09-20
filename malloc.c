@@ -1,6 +1,6 @@
 #include "malloc.h"
 
-heapInfo_t heap = {NULL, NULL, NULL};
+heapInfo_t	heap = {NULL, NULL, NULL};
 
 void	*allocate_zone(size_t size)
 {
@@ -33,6 +33,7 @@ int	initHeap()
 	heap.small->size = small_zone_size - sizeof(heapChunk_t);
 	heap.small->inuse = 0;
 	heap.small->next = NULL;
+
 	heap.large = NULL;
 
 	return 0;
