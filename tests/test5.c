@@ -3,6 +3,7 @@
 int main()
 {
     malloc(32);
+    malloc(128);
     malloc(1024 * 32);
     malloc(1024 * 1024);
     malloc(1024 * 1024 * 16);

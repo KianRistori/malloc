@@ -1,10 +1,14 @@
 #ifndef MALLOC_H
 # define MALLOC_H
 
+# include <stdio.h>
+# include <sys/mman.h>
+# include <unistd.h>
 # include "libft/libft.h"
 
 #define TINY_MAX 64
 #define SMALL_MAX 512
+#define LARGE_MAX 1024
 
 typedef struct heapChunk {
 	size_t size;
