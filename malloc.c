@@ -59,9 +59,21 @@ void	*malloc(size_t size)
 
 		chunk->size = size;
 		chunk->inuse = 1;
-		chunk->next = heap.large;
-		heap.large = chunk;
 		chunk->original_ptr = (void *)(chunk + 1);
+
+		if (!heap.large)
+		{
+			heap.large = chunk;
+		}
+		else
+		{
+			heapChunk_t *last = heap.large;
+			while (last->next != NULL)
+				last = last->next;
+			last->next = chunk;
+		}
+
+		chunk->next = NULL;
 		return (void *)(chunk + 1);
 	}
 
