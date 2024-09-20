@@ -20,14 +20,14 @@ void	free(void *ptr)
 
 	while (current)
 	{
-		if (current == chunk) 
+		if (current == chunk)
 		{
-			if (current->next && !current->next->inuse) 
+			if (current->next && !current->next->inuse)
 			{
 				current->size += sizeof(heapChunk_t) + current->next->size;
 				current->next = current->next->next;
 			}
-			if (prev && !prev->inuse) 
+			if (prev && !prev->inuse)
 			{
 				prev->size += sizeof(heapChunk_t) + current->size;
 				prev->next = current->next;
@@ -39,4 +39,3 @@ void	free(void *ptr)
 		current = current->next;
 	}
 }
-

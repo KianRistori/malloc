@@ -8,7 +8,6 @@
 
 #define TINY_MAX 64
 #define SMALL_MAX 512
-#define LARGE_MAX 1024
 
 typedef struct heapChunk {
 	size_t size;
