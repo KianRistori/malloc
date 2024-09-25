@@ -2,68 +2,100 @@
 
 extern heapInfo_t heap;
 
-void free(void *ptr)
+int	is_zone_empty(heapChunk_t *zone)
+{
+    heapChunk_t *chunk = zone;
+    while (chunk)
+    {
+        if (chunk->inuse)
+            return 0;
+        chunk = chunk->next;
+    }
+    return 1;
+}
+
+void	free(void *ptr)
 {
     if (!ptr)
         return;
 
-    // Recupera il chunk associato al puntatore
-    heapChunk_t *chunk = (heapChunk_t *)ptr - 1;
-    chunk->inuse = 0;
+    heapChunk_t *chunk = (heapChunk_t *)((char *)ptr - sizeof(heapChunk_t));
 
-    // Gestione chunk di grandi dimensioni (> SMALL_MAX)
-    if (chunk->size > SMALL_MAX)
+    // Controlla se il chunk appartiene alla zona tiny
+    heapChunk_t *tiny_zone = heap.tiny;
+    heapChunk_t *prev_tiny = NULL;
+    while (tiny_zone)
     {
-        // Rimuovi il chunk dalla lista dei grandi
-        heapChunk_t *prev_large = NULL;
-        heapChunk_t *current_large = heap.large;
-        while (current_large)
+        if (chunk >= tiny_zone && chunk < (heapChunk_t *)((char *)tiny_zone + getpagesize()))
         {
-            if (current_large == chunk)
+            chunk->inuse = 0; // Marca il chunk come libero
+            if (is_zone_empty(tiny_zone))
             {
-                if (prev_large)
-                    prev_large->next = current_large->next;
+                // Dealloca l'intera zona con munmap
+                if (prev_tiny)
+                    prev_tiny->next = tiny_zone->next;
                 else
-                    heap.large = current_large->next;
-                break;
-            }
-            prev_large = current_large;
-            current_large = current_large->next;
-        }
+                    heap.tiny = tiny_zone->next;
 
-        // Dealloca la memoria mappata con munmap
-        munmap(chunk, chunk->size + sizeof(heapChunk_t));
-        return;
+                if (munmap(tiny_zone, getpagesize()) != 0)
+                {
+                    perror("munmap");
+                }
+            }
+            return;
+        }
+        prev_tiny = tiny_zone;
+        tiny_zone = tiny_zone->next;
     }
 
-    // Individua la lista corretta (tiny o small) per il chunk
-    heapChunk_t *prev = NULL;
-    heapChunk_t *current = (chunk->size <= TINY_MAX) ? heap.tiny : heap.small;
-
-    // Itera attraverso la lista per trovare il chunk e fare coalescenza
-    while (current)
+    // Controlla se il chunk appartiene alla zona small
+    heapChunk_t *small_zone = heap.small;
+    heapChunk_t *prev_small = NULL;
+    while (small_zone)
     {
-        if (current == chunk)
+        if (chunk >= small_zone && chunk < (heapChunk_t *)((char *)small_zone + getpagesize() * 4))
         {
-            // Coalescenza con il chunk successivo, se è libero
-            if (current->next && !current->next->inuse)
+            chunk->inuse = 0; // Marca il chunk come libero
+            if (is_zone_empty(small_zone))
             {
-                current->size += sizeof(heapChunk_t) + current->next->size;
-                current->next = current->next->next;
-            }
+                // Dealloca l'intera zona con munmap
+                if (prev_small)
+                    prev_small->next = small_zone->next;
+                else
+                    heap.small = small_zone->next;
 
-            // Coalescenza con il chunk precedente, se è libero
-            if (prev && !prev->inuse)
-            {
-                prev->size += sizeof(heapChunk_t) + current->size;
-                prev->next = current->next;
-                current = prev;
+                if (munmap(small_zone, getpagesize() * 4) != 0)
+                {
+                    perror("munmap");
+                }
             }
-
-            break;
+            return;
         }
+        prev_small = small_zone;
+        small_zone = small_zone->next;
+    }
 
-        prev = current;
-        current = current->next;
+    // Controlla se il chunk appartiene alla zona large
+    heapChunk_t *large_zone = heap.large;
+    heapChunk_t *prev_large = NULL;
+    while (large_zone)
+    {
+        if (chunk == large_zone)
+        {
+            // Dealloca l'intero chunk con munmap
+            if (prev_large)
+                prev_large->next = large_zone->next;
+            else
+                heap.large = large_zone->next;
+
+            if (munmap(large_zone, large_zone->size + sizeof(heapChunk_t)) != 0)
+            {
+                perror("munmap");
+            }
+            return;
+        }
+        prev_large = large_zone;
+        large_zone = large_zone->next;
     }
 }
+
