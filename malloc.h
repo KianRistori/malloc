@@ -7,12 +7,12 @@
 # include <stdint.h>
 # include "libft/libft.h"
 
-#define TINY_MAX (64 * 1024)         // 64 KB
-#define SMALL_MAX (1024 * 1024)      // 1 MB
+#define TINY_MAX (64 * 1024)				// 64 KB
+#define SMALL_MAX (1024 * 1024)				// 1 MB
 
-#define TINY_ALLOCATE (1024 * 64)  // 64 KB
-#define SMALL_ALLOCATE (1024 * 1024) // 1 MB
-#define LARGE_ALLOCATE (1024 * 10)   // 10 MB
+#define TINY_ALLOCATE (1024 * 64)			// 64 KB
+#define SMALL_ALLOCATE (1024 * 1024)		// 1 MB
+#define LARGE_ALLOCATE (1024 * 1024 * 256)	//256 MB
 
 typedef struct heapChunk {
 	size_t size;

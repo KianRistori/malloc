@@ -23,12 +23,33 @@ void	free_chunk(heapChunk_t *zone, heapChunk_t *chunk)
 		if (chunk == zone)
 		{
 			chunk->inuse = 0;
+
+			if (chunk->next && chunk->next->inuse == 0)
+			{
+				chunk->size += sizeof(heapChunk_t) + chunk->next->size;
+				chunk->next = chunk->next->next;
+			}
+
+			if (zone != start)
+			{
+				heapChunk_t *prev = start;
+				while (prev && prev->next != chunk)
+					prev = prev->next;
+
+				if (prev && prev->inuse == 0)
+				{
+					prev->size += sizeof(heapChunk_t) + chunk->size;
+					prev->next = chunk->next;
+					chunk = prev;
+				}
+			}
 			return;  	
 		}
 		zone = zone->next;
 	}
 	zone = start;
 }
+
 
 void free(void *ptr)
 {

@@ -110,7 +110,6 @@ void *malloc(size_t size)
 
     if (!chunk)
     {
-        write(1, "Allocating new zone\n", 20);
         heapChunk_t *new_zone = extend_zone(zone_size);
         
         heapChunk_t *last = *heap_zone;
@@ -129,6 +128,7 @@ void *malloc(size_t size)
         chunk->size = size;
         chunk->next = new_chunk;
     }
+
 
     chunk->inuse = 1;
     return (void *)(chunk + 1);
