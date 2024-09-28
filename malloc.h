@@ -4,15 +4,15 @@
 # include <stdio.h>
 # include <sys/mman.h>
 # include <unistd.h>
+# include <stdint.h>
 # include "libft/libft.h"
 
-#define TINY_MAX 64
-#define SMALL_MAX 512
-#define LARGE_MAX 1024
+#define TINY_MAX (64 * 1024)         // 64 KB
+#define SMALL_MAX (1024 * 1024)      // 1 MB
 
-#define TINY_ALLOCATE getpagesize()
-#define SMALL_ALLOCATE getpagesize() * 4
-#define LARGE_ALLOCATE getpagesize() * 32
+#define TINY_ALLOCATE (1024 * 64)  // 64 KB
+#define SMALL_ALLOCATE (1024 * 1024) // 1 MB
+#define LARGE_ALLOCATE (1024 * 10)   // 10 MB
 
 typedef struct heapChunk {
 	size_t size;
@@ -25,6 +25,9 @@ typedef struct {
 	heapChunk_t *tiny;
 	heapChunk_t *small;
 	heapChunk_t *large;
+	size_t tiny_allocation_count;
+	size_t small_allocation_count;
+	size_t large_allocation_count;
 } heapInfo_t;
 
 void	free(void *ptr);

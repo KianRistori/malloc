@@ -1,6 +1,6 @@
 #include "malloc.h"
 
-heapInfo_t heap = {NULL, NULL, NULL};
+heapInfo_t heap = {NULL, NULL, NULL, 0, 0, 0};
 
 void *allocate_zone(size_t size)
 {
@@ -13,35 +13,47 @@ void *allocate_zone(size_t size)
     return start;
 }
 
-int initHeap()
+int initHeap(size_t size)
 {
     size_t tiny_zone_size = TINY_ALLOCATE;
     size_t small_zone_size = SMALL_ALLOCATE; 
     size_t large_zone_size = LARGE_ALLOCATE;
 
-    heap.tiny = allocate_zone(tiny_zone_size);
-    if (!heap.tiny)
-        return 1;
+    if (size <= TINY_MAX && heap.tiny == NULL)
+    {
+        heap.tiny = allocate_zone(tiny_zone_size);
+        if (!heap.tiny)
+            return 1;
 
-    heap.tiny->size = tiny_zone_size - sizeof(heapChunk_t);
-    heap.tiny->inuse = 0;
-    heap.tiny->next = NULL;
+        heap.tiny->size = tiny_zone_size - sizeof(heapChunk_t);
+        heap.tiny->inuse = 0;
+        heap.tiny->next = NULL;
+        heap.tiny->original_ptr = heap.tiny;
+    }
 
-    heap.small = allocate_zone(small_zone_size);
-    if (!heap.small)
-        return 1;
+    if (size <= SMALL_MAX && heap.small == NULL)
+    {
+        heap.small = allocate_zone(small_zone_size);
+        if (!heap.small)
+            return 1;
 
-    heap.small->size = small_zone_size - sizeof(heapChunk_t);
-    heap.small->inuse = 0;
-    heap.small->next = NULL;
+        heap.small->size = small_zone_size - sizeof(heapChunk_t);
+        heap.small->inuse = 0;
+        heap.small->next = NULL;
+        heap.small->original_ptr = heap.small;
+    }
 
-    heap.large = allocate_zone(large_zone_size);
-    if (!heap.large)
-        return 1;
+    if (size > SMALL_MAX && heap.large == NULL)
+    {
+        heap.large = allocate_zone(large_zone_size);
+        if (!heap.large)
+            return 1;
 
-    heap.large->size = large_zone_size - sizeof(heapChunk_t);
-    heap.large->inuse = 0;
-    heap.large->next = NULL;
+        heap.large->size = large_zone_size - sizeof(heapChunk_t);
+        heap.large->inuse = 0;
+        heap.large->next = NULL;
+        heap.large->original_ptr = heap.large;
+    }
 
     return 0;
 }
@@ -61,44 +73,46 @@ heapChunk_t *extend_zone(size_t zone_size)
 
 void *malloc(size_t size)
 {
-    if (heap.tiny == NULL && initHeap() != 0)
-        return NULL;
-
     heapChunk_t *chunk = NULL;
     heapChunk_t **heap_zone = NULL;
     size_t zone_size = 0;
 
     if (size <= TINY_MAX)
     {
+        if (heap.tiny == NULL && initHeap(size))
+            return NULL;
         chunk = heap.tiny;
         heap_zone = &heap.tiny;
-        zone_size = TINY_ALLOCATE; 
+        zone_size = TINY_ALLOCATE;
+        heap.tiny_allocation_count++;
     }
     else if (size <= SMALL_MAX)
     {
+        if (heap.small == NULL && initHeap(size))
+            return NULL;
         chunk = heap.small;
         heap_zone = &heap.small;
         zone_size = SMALL_ALLOCATE;
+        heap.small_allocation_count++;
     }
     else
     {
+        if (heap.large == NULL && initHeap(size))
+            return NULL;
         chunk = heap.large;
         heap_zone = &heap.large;
         zone_size = LARGE_ALLOCATE;
+        heap.large_allocation_count++;
     }
 
-    // Cerca un chunk libero nella zona corrente
     while (chunk && (chunk->inuse || chunk->size < size))
         chunk = chunk->next;
 
-    // Se non ci sono chunk disponibili, estendi la zona
     if (!chunk)
     {
+        write(1, "Allocating new zone\n", 20);
         heapChunk_t *new_zone = extend_zone(zone_size);
-        if (!new_zone)
-            return NULL;
-
-        // Collegalo alla fine della lista di chunk della zona
+        
         heapChunk_t *last = *heap_zone;
         while (last->next != NULL)
             last = last->next;
@@ -106,7 +120,6 @@ void *malloc(size_t size)
         chunk = new_zone;
     }
 
-    // Se il chunk è troppo grande, dividilo
     if (chunk->size > size + sizeof(heapChunk_t))
     {
         heapChunk_t *new_chunk = (heapChunk_t *)((char *)chunk + sizeof(heapChunk_t) + size);
@@ -117,9 +130,6 @@ void *malloc(size_t size)
         chunk->next = new_chunk;
     }
 
-    // Marca il chunk come in uso e restituiscilo
     chunk->inuse = 1;
-    chunk->original_ptr = (void *)(chunk + 1);
     return (void *)(chunk + 1);
 }
-
