@@ -1,4 +1,4 @@
-#include "malloc.h"
+#include "../include/malloc.h"
 
 heapInfo_t heap = {NULL, NULL, NULL, 0, 0, 0};
 

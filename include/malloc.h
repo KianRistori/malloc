@@ -5,7 +5,7 @@
 # include <sys/mman.h>
 # include <unistd.h>
 # include <stdint.h>
-# include "libft/libft.h"
+# include "../libft/libft.h"
 
 #define TINY_MAX (64 * 1024)				// 64 KB
 #define SMALL_MAX (1024 * 1024)				// 1 MB
