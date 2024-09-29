@@ -4,7 +4,6 @@ endif
 
 NAME = libft_malloc_$(HOSTTYPE).so
 
-# Cartelle
 SRC_DIR = src
 INCLUDE_DIR = include
 OBJ_DIR = obj
