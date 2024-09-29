@@ -21,13 +21,15 @@ typedef struct heapChunk {
 	struct heapChunk *next;
 } heapChunk_t;
 
+typedef struct heapZone {
+	heapChunk_t *start;
+	size_t allocation_count;
+} heapZone_t;
+
 typedef struct {
-	heapChunk_t *tiny;
-	heapChunk_t *small;
-	heapChunk_t *large;
-	size_t tiny_allocation_count;
-	size_t small_allocation_count;
-	size_t large_allocation_count;
+	heapZone_t *tiny;
+	heapZone_t *small;
+	heapZone_t *large;
 } heapInfo_t;
 
 void	free(void *ptr);

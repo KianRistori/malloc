@@ -1,6 +1,6 @@
 #include "../include/malloc.h"
 
-heapInfo_t heap = {NULL, NULL, NULL, 0, 0, 0};
+heapInfo_t heap = {NULL, NULL, NULL};
 
 void *allocate_zone(size_t size)
 {
@@ -13,7 +13,19 @@ void *allocate_zone(size_t size)
     return start;
 }
 
-int initHeap(size_t size)
+void    init_heap_zone_start(heapChunk_t **zone, size_t zone_size)
+{
+    *zone = allocate_zone(zone_size);
+    if (!*zone)
+        return;
+
+    (*zone)->size = zone_size - sizeof(heapChunk_t);
+    (*zone)->inuse = 0;
+    (*zone)->next = NULL;
+    (*zone)->original_ptr = *zone;
+}
+
+int init_heap(size_t size)
 {
     size_t tiny_zone_size = TINY_ALLOCATE;
     size_t small_zone_size = SMALL_ALLOCATE; 
@@ -24,11 +36,8 @@ int initHeap(size_t size)
         heap.tiny = allocate_zone(tiny_zone_size);
         if (!heap.tiny)
             return 1;
-
-        heap.tiny->size = tiny_zone_size - sizeof(heapChunk_t);
-        heap.tiny->inuse = 0;
-        heap.tiny->next = NULL;
-        heap.tiny->original_ptr = heap.tiny;
+        
+        init_heap_zone_start(&heap.tiny->start, tiny_zone_size);
     }
 
     if (size <= SMALL_MAX && heap.small == NULL)
@@ -37,10 +46,7 @@ int initHeap(size_t size)
         if (!heap.small)
             return 1;
 
-        heap.small->size = small_zone_size - sizeof(heapChunk_t);
-        heap.small->inuse = 0;
-        heap.small->next = NULL;
-        heap.small->original_ptr = heap.small;
+        init_heap_zone_start(&heap.small->start, small_zone_size);
     }
 
     if (size > SMALL_MAX && heap.large == NULL)
@@ -49,10 +55,7 @@ int initHeap(size_t size)
         if (!heap.large)
             return 1;
 
-        heap.large->size = large_zone_size - sizeof(heapChunk_t);
-        heap.large->inuse = 0;
-        heap.large->next = NULL;
-        heap.large->original_ptr = heap.large;
+        init_heap_zone_start(&heap.large->start, large_zone_size);
     }
 
     return 0;
@@ -79,30 +82,30 @@ void *malloc(size_t size)
 
     if (size <= TINY_MAX)
     {
-        if (heap.tiny == NULL && initHeap(size))
+        if (heap.tiny == NULL && init_heap(size))
             return NULL;
-        chunk = heap.tiny;
-        heap_zone = &heap.tiny;
+        chunk = heap.tiny->start;
+        heap_zone = &heap.tiny->start;
         zone_size = TINY_ALLOCATE;
-        heap.tiny_allocation_count++;
+        heap.tiny->allocation_count++;
     }
     else if (size <= SMALL_MAX)
     {
-        if (heap.small == NULL && initHeap(size))
+        if (heap.small == NULL && init_heap(size))
             return NULL;
-        chunk = heap.small;
-        heap_zone = &heap.small;
+        chunk = heap.small->start;
+        heap_zone = &heap.small->start;
         zone_size = SMALL_ALLOCATE;
-        heap.small_allocation_count++;
+        heap.small->allocation_count++;
     }
     else
     {
-        if (heap.large == NULL && initHeap(size))
+        if (heap.large == NULL && init_heap(size))
             return NULL;
-        chunk = heap.large;
-        heap_zone = &heap.large;
+        chunk = heap.large->start;
+        heap_zone = &heap.large->start;
         zone_size = LARGE_ALLOCATE;
-        heap.large_allocation_count++;
+        heap.large->allocation_count++;
     }
 
     while (chunk && (chunk->inuse || chunk->size < size))
@@ -128,7 +131,6 @@ void *malloc(size_t size)
         chunk->size = size;
         chunk->next = new_chunk;
     }
-
 
     chunk->inuse = 1;
     return (void *)(chunk + 1);

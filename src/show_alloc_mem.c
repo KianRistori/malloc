@@ -75,22 +75,22 @@ void	show_alloc_mem()
 
 	if (heap.tiny)
 	{
-		print_chunk(heap.tiny, "TINY");
-		heapChunk_t *chunk = heap.tiny;
+		print_chunk(heap.tiny->start, "TINY");
+		heapChunk_t *chunk = heap.tiny->start;
 		calculate_total_memory(chunk, &total_size);
 	}
 
 	if (heap.small)
 	{
-		print_chunk(heap.small, "SMALL");
-		heapChunk_t *chunk = heap.small;
+		print_chunk(heap.small->start, "SMALL");
+		heapChunk_t *chunk = heap.small->start;
 		calculate_total_memory(chunk, &total_size);
 	}
 
 	if (heap.large)
 	{
-		print_chunk(heap.large, "LARGE");
-		heapChunk_t *chunk = heap.large;
+		print_chunk(heap.large->start, "LARGE");
+		heapChunk_t *chunk = heap.large->start;
 		calculate_total_memory(chunk, &total_size);
 	}
 
