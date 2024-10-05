@@ -16,13 +16,13 @@ SYMLINK = libft_malloc.so
 LIBFT = @libft/Makefile
 LIB = libft/libft.a
 
-FLAGS = -Wall -Wextra -Werror -fPIC -shared -I$(INCLUDE_DIR)
+FLAGS = -Wall -Wextra -Werror -fPIC -I$(INCLUDE_DIR)
 
 all: $(LIBFT) $(NAME)
 
 $(NAME): $(OBJ)
 	@echo "- Compiling $(NAME)..."
-	@gcc $(FLAGS) $(OBJ) $(LIB) -o $(NAME)
+	@gcc $(FLAGS) -shared $(OBJ) $(LIB) -o $(NAME)
 	@echo "- Compiled -"
 	@echo "- Creating symlink"
 	@ln -sf $(NAME) $(SYMLINK)
