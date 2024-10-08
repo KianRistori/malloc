@@ -1,6 +1,6 @@
 #include "../include/malloc.h"
 
-extern heapInfo_t heap;
+extern heapInfo_t	heap;
 
 int	is_zone_empty(heapChunk_t *zone)
 {
@@ -42,7 +42,7 @@ void	free_chunk(heapChunk_t *zone, heapChunk_t *chunk)
 					chunk = prev;
 				}
 			}
-			return;  	
+			return;
 		}
 		zone = zone->next;
 	}
@@ -63,17 +63,17 @@ void	free_chunk_in_zone(heapZone_t *heap, heapChunk_t *zone, heapChunk_t *chunk,
 	}
 }
 
-void free(void *ptr)
+void	free(void *ptr)
 {
 	if (!ptr)
-        return;
+		return;
 
-    heapChunk_t *chunk = (heapChunk_t *)((char *)ptr - sizeof(heapChunk_t));
+	heapChunk_t *chunk = (heapChunk_t *)((char *)ptr - sizeof(heapChunk_t));
 
-    if (chunk->size <= TINY_MAX)
-        free_chunk_in_zone(heap.tiny, heap.tiny->start, chunk, TINY_ALLOCATE);
-    else if (chunk->size <= SMALL_MAX)
-        free_chunk_in_zone(heap.small, heap.small->start, chunk, SMALL_ALLOCATE);
-    else
-        free_chunk_in_zone(heap.large, heap.large->start, chunk, LARGE_ALLOCATE);
+	if (chunk->size <= TINY_MAX)
+		free_chunk_in_zone(heap.tiny, heap.tiny->start, chunk, TINY_ALLOCATE);
+	else if (chunk->size <= SMALL_MAX)
+		free_chunk_in_zone(heap.small, heap.small->start, chunk, SMALL_ALLOCATE);
+	else
+		free_chunk_in_zone(heap.large, heap.large->start, chunk, LARGE_ALLOCATE);
 }
